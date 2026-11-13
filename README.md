@@ -3,7 +3,7 @@
   <img src="logos/png/lockup.png" alt="Nightcap" width="374">
 </picture>
 
-**[sethryder.github.io/nightcap](https://sethryder.github.io/nightcap/)**
+**[nightcap.washclof.com](https://nightcap.washclof.com/)**
 
 A nightcap for monitors that will not go to sleep: a tiny Windows tray app that turns your monitors off when you lock the screen, and keeps them off.
 
