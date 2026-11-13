@@ -3,6 +3,8 @@
   <img src="logos/png/lockup.png" alt="Nightcap" width="374">
 </picture>
 
+**[sethryder.github.io/nightcap](https://sethryder.github.io/nightcap/)**
+
 A nightcap for monitors that will not go to sleep: a tiny Windows tray app that turns your monitors off when you lock the screen, and keeps them off.
 
 Windows leaves the monitors on after Win+L if a browser is playing video, because the browser holds a "display required" power request. Nightcap sends the monitor-off command shortly after the session locks (2 seconds by default), and re-sends it every 30 seconds while the machine stays locked and nobody is touching it. Nothing changes while the session is unlocked.
