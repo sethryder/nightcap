@@ -8,10 +8,15 @@ APP_SIZES  = 16 24 32 48 64
 
 nightcap.exe: main.c nightcap.rc $(wildcard $(ICO)/*.ico)
 	$(WINDRES) nightcap.rc -o nightcap.res.o
-	$(CC) -Os -s -mwindows -Wall -Wextra main.c nightcap.res.o -o $@ -lwtsapi32
+	$(CC) -Os -s -mwindows -Wall -Wextra -DVERSION='L"$(VERSION)"' main.c nightcap.res.o -o $@ -lwtsapi32 -lwinhttp
 
 installer: nightcap.exe
 	makensis -V2 -DVERSION=$(VERSION) installer.nsi
+
+# Checks the version comparison and does one real update check against GitHub. Runs the exe, so needs Windows or WSL.
+test:
+	$(CC) -DSELFTEST -DVERSION='L"0.0.1"' -Wall -Wextra main.c -o selftest.exe -lwtsapi32 -lwinhttp
+	./selftest.exe
 
 # Regenerate the committed .ico files from the artwork. Needs ImageMagick and rsvg-convert.
 icons:
@@ -21,4 +26,4 @@ icons:
 	magick $(TRAY_SIZES:%=logos/png/tray-on-dark-%.png) $(ICO)/tray-dark.ico
 	magick $(TRAY_SIZES:%=logos/png/tray-on-light-%.png) $(ICO)/tray-light.ico
 
-.PHONY: installer icons
+.PHONY: installer test icons

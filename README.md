@@ -9,8 +9,8 @@ A nightcap for monitors that will not go to sleep: a tiny Windows tray app that 
 
 Windows leaves the monitors on after Win+L if a browser is playing video, because the browser holds a "display required" power request. Nightcap sends the monitor-off command shortly after the session locks (2 seconds by default), and re-sends it every 30 seconds while the machine stays locked and nobody is touching it. Nothing changes while the session is unlocked.
 
-- One exe of about 75 kB, no admin rights, no dependencies. The installer is optional.
-- Idle until a lock event; no polling while unlocked.
+- One exe of about 80 kB, no admin rights, no dependencies. The installer is optional.
+- Idle until a lock event, apart from one small update check a day (which you can turn off).
 
 ## Use
 
@@ -23,6 +23,7 @@ Right-click the tray icon for:
 - **Enabled**: turn the behaviour on or off (resets to on at next start).
 - **Delay after lock**: how long after locking the monitors go off, from 2 seconds to 5 minutes. Saved under `HKCU\Software\Nightcap`.
 - **Start at login**: adds or removes an entry under `HKCU\Software\Microsoft\Windows\CurrentVersion\Run`. Toggle it again if you move the exe.
+- **Check for updates**: once a day Nightcap asks GitHub whether a newer release exists, and shows a notification and a menu item if so. It never downloads or installs anything by itself; you get the new version from the releases page. Untick it and the app makes no network connections at all.
 - **Exit**
 
 The installer and exe are unsigned, so SmartScreen will warn on first run, and some antivirus tools are suspicious of very small native executables. Build it yourself if you would rather not trust the binary.
@@ -34,6 +35,7 @@ With MinGW-w64 GCC and `make` (cross-compiling from Linux works):
 ```
 make                          # nightcap.exe
 make installer VERSION=0.1.0  # Nightcap-setup.exe, needs NSIS
+make test                     # version-comparison checks and one live update check
 ```
 
 The icons in `logos/ico` are generated from the artwork in `logos` with `make icons`.
