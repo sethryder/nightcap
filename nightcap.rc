@@ -1,0 +1,4 @@
+// Icon IDs match IDI_* in main.c. The lowest ID is the one Explorer shows for the exe.
+1 ICON "logos/ico/app.ico"
+2 ICON "logos/ico/tray-dark.ico"
+3 ICON "logos/ico/tray-light.ico"

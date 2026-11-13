@@ -1,0 +1,16 @@
+name: release
+on:
+  push:
+    tags: ['v*']
+permissions:
+  contents: write
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update && sudo apt-get install -y gcc-mingw-w64-x86-64 nsis
+      - run: make installer VERSION="${GITHUB_REF_NAME#v}"
+      - run: gh release create "$GITHUB_REF_NAME" Nightcap-setup.exe nightcap.exe --generate-notes
+        env:
+          GH_TOKEN: ${{ github.token }}
