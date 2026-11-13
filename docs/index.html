@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="en" data-state="asleep">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nightcap: turn your monitors off when you lock your PC</title>
+<meta name="description" content="A tiny Windows tray app that turns your monitors off when you lock your PC, even if a browser is playing video.">
+<meta property="og:title" content="Nightcap">
+<meta property="og:description" content="A nightcap for monitors that won't go to sleep. Tiny Windows tray app that turns your monitors off when you lock your PC.">
+<meta property="og:image" content="https://sethryder.github.io/nightcap/og.png">
+<meta property="og:url" content="https://sethryder.github.io/nightcap/">
+<link rel="icon" href="logo.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --dusk: #2B2670;      /* page while the monitor is awake */
+  --night: #141233;     /* page once it is asleep */
+  --indigo: #5B54E8;
+  --lavender: #A9A4FF;
+  --cream: #FFE9B8;
+  --orange: #FFB84A;
+  --text: #DDDAFF;
+  --ease-drop: cubic-bezier(.3, 1.6, .6, 1);
+}
+* { box-sizing: border-box; }
+html { background: var(--dusk); transition: background-color 1.2s ease; }
+html[data-state="asleep"] { background: var(--night); }
+body {
+  margin: 0;
+  font: 400 1.125rem/1.6 Nunito, ui-rounded, "Segoe UI", system-ui, sans-serif;
+  color: var(--text);
+}
+.wrap { max-width: 66rem; margin-inline: auto; padding-inline: clamp(1.25rem, 5vw, 3rem); }
+a { color: var(--orange); text-underline-offset: .2em; }
+a:hover { color: var(--cream); }
+:focus-visible { outline: 3px solid var(--orange); outline-offset: 3px; border-radius: 4px; }
+h1, h2, h3 { color: var(--cream); font-weight: 800; line-height: 1.1; margin: 0; }
+h1 { font-size: clamp(2.3rem, 5.2vw, 3.75rem); letter-spacing: -.02em; }
+h2 { font-size: clamp(1.6rem, 3vw, 2.1rem); letter-spacing: -.01em; }
+p { margin: 0; max-width: 60ch; }
+
+/* Header */
+.top { display: flex; align-items: center; justify-content: space-between; padding-block: 1.5rem; }
+.brand { display: flex; align-items: center; gap: .6rem; color: var(--cream); font-weight: 900; font-size: 1.5rem; text-decoration: none; letter-spacing: -.01em; }
+.brand img { width: 2.4rem; height: 2.4rem; }
+.top-link { font-weight: 600; }
+
+/* Hero */
+.hero { display: grid; grid-template-columns: 1.05fr .95fr; gap: clamp(2rem, 5vw, 4rem); align-items: center; padding-block: clamp(2rem, 6vw, 4.5rem) clamp(3rem, 8vw, 6rem); }
+.hero p { margin-top: 1.25rem; font-size: 1.25rem; }
+.actions { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem 1.5rem; margin-top: 2rem; }
+.button { display: inline-block; padding: .85rem 1.6rem; border-radius: 999px; background: var(--orange); color: var(--dusk); font-weight: 800; text-decoration: none; }
+.button:hover { background: var(--cream); color: var(--dusk); }
+.hero .meta { margin-top: 1rem; font-size: 1rem; color: var(--lavender); }
+
+/* Demo */
+.demo { margin: 0; text-align: center; }
+.monitor { display: block; width: min(100%, 26rem); margin-inline: auto; overflow: visible; }
+.screen { fill: #F4F2FF; transition: fill .6s ease; }
+.stream, .eyes-open, .eyes-shut, .cap { transition: opacity .4s ease; }
+.eyes-shut, .cap { opacity: 0; }
+.cap { transform: translateY(-7px); transition: opacity .25s ease, transform .55s var(--ease-drop); }
+.bar { transform-box: fill-box; transform-origin: bottom; animation: bounce .7s ease-in-out infinite alternate; }
+.bar:nth-child(2) { animation-duration: .5s; }
+.bar:nth-child(3) { animation-duration: .9s; }
+.live { animation: blink 1.4s steps(2, jump-none) infinite; }
+@keyframes bounce { from { transform: scaleY(.3); } to { transform: scaleY(1); } }
+@keyframes blink { to { opacity: .25; } }
+[data-state="locked"] .screen { fill: #CFCBFF; }
+[data-state="asleep"] .screen { fill: var(--indigo); }
+[data-state="asleep"] .stream, [data-state="asleep"] .eyes-open { opacity: 0; }
+[data-state="asleep"] .eyes-shut { opacity: 1; }
+[data-state="asleep"] .cap { opacity: 1; transform: none; }
+.demo-status { min-height: 3.2em; margin: 1.25rem auto 0; max-width: 34ch; }
+.demo-button { margin-top: .75rem; padding: .65rem 1.4rem; border-radius: 999px; border: 2px solid var(--cream); background: none; color: var(--cream); font: inherit; font-weight: 800; cursor: pointer; }
+.demo-button:hover { background: var(--cream); color: var(--dusk); }
+
+/* Sections */
+.section { padding-block: clamp(2.5rem, 6vw, 4.5rem); border-top: 2px solid rgb(169 164 255 / .18); }
+.section > p { margin-top: 1rem; }
+.steps { list-style: none; margin: 2.5rem 0 0; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 2rem; counter-reset: step; }
+.steps li { counter-increment: step; }
+.steps li::before { content: counter(step); display: block; font-size: 3.25rem; font-weight: 900; line-height: 1; color: var(--orange); margin-bottom: .6rem; }
+.steps h3 { font-size: 1.2rem; margin-bottom: .4rem; }
+.steps p { font-size: 1rem; }
+
+.menu-row { display: grid; grid-template-columns: auto 1fr; gap: clamp(2rem, 5vw, 4rem); align-items: start; margin-top: 2.5rem; }
+.tray-menu { width: 15rem; padding: .3rem; border-radius: 8px; background: #2C2C2C; border: 1px solid #454545; box-shadow: 0 12px 28px rgb(0 0 0 / .4); font: 400 .875rem/1.2 "Segoe UI", system-ui, sans-serif; color: #fff; }
+.tray-menu div { display: grid; grid-template-columns: 1.4rem 1fr auto; padding: .5rem .6rem; border-radius: 4px; }
+.tray-menu hr { border: 0; border-top: 1px solid #454545; margin: .3rem 0; }
+.options { margin: 0; display: grid; gap: 1.25rem; }
+.options dt { color: var(--cream); font-weight: 800; }
+.options dd { margin: .15rem 0 0; max-width: 56ch; }
+
+.notes { margin: 2rem 0 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.75rem 3rem; }
+.notes h3 { font-size: 1.2rem; margin-bottom: .4rem; }
+.notes p { font-size: 1rem; }
+
+footer { padding-block: 2.5rem 3.5rem; border-top: 2px solid rgb(169 164 255 / .18); font-size: 1rem; color: var(--lavender); }
+
+@media (max-width: 52rem) {
+  .hero, .menu-row { grid-template-columns: 1fr; }
+  .steps { grid-template-columns: repeat(2, 1fr); }
+  .notes { grid-template-columns: 1fr; }
+}
+@media (max-width: 30rem) {
+  .steps { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, html { transition: none !important; animation: none !important; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="top">
+  <a class="brand" href="./"><img src="logo.svg" alt="">Nightcap</a>
+  <a class="top-link" href="https://github.com/sethryder/nightcap">GitHub</a>
+</header>
+
+<main>
+<section class="hero">
+  <div>
+    <h1>A nightcap for monitors that won't go to sleep.</h1>
+    <p>Lock your PC with a stream still playing and Windows leaves the screens on all night. Nightcap is a tiny tray app that turns them off when you lock, and keeps them off.</p>
+    <div class="actions">
+      <a class="button" href="https://github.com/sethryder/nightcap/releases/latest/download/Nightcap-setup.exe">Download for Windows</a>
+      <a href="https://github.com/sethryder/nightcap">Source on GitHub</a>
+    </div>
+    <p class="meta">Free and open source. The app is about 75 kB.</p>
+  </div>
+
+  <figure class="demo">
+    <svg class="monitor" viewBox="0 0 16 16" aria-hidden="true">
+      <g fill="#5B54E8">
+        <rect x="1" y="7" width="14" height="6" rx="1.5"/>
+        <path d="M6.500 12.500h3v1.800h-3z"/>
+        <rect x="4" y="14" width="8" height="1" rx=".5"/>
+      </g>
+      <rect class="screen" x="1.700" y="7.700" width="12.600" height="4.600" rx=".9"/>
+      <g class="stream" fill="#F08C00">
+        <circle class="live" cx="2.800" cy="8.700" r=".32"/>
+        <g>
+          <rect class="bar" x="7.050" y="9.700" width=".4" height="1.400" rx=".2"/>
+          <rect class="bar" x="7.800" y="9.300" width=".4" height="1.800" rx=".2"/>
+          <rect class="bar" x="8.550" y="9.900" width=".4" height="1.200" rx=".2"/>
+        </g>
+      </g>
+      <g class="eyes-open" fill="#2B2670">
+        <circle cx="5" cy="10.100" r=".6"/>
+        <circle cx="11" cy="10.100" r=".6"/>
+      </g>
+      <path class="eyes-shut" d="M4 10.100q1 1 2 0m4 0q1 1 2 0" fill="none" stroke="#FFE9B8" stroke-width=".6" stroke-linecap="round"/>
+      <g class="cap">
+        <path d="M2 6.500C2 3 4.500 1 7 1c2.600 0 4.200 1.400 4.700 3.200L10.300 6.800z" fill="#FFB84A"/>
+        <g fill="#FFE9B8">
+          <rect x="1.500" y="5" width="9.300" height="2" rx="1"/>
+          <circle cx="13.500" cy="5.500" r="1.400"/>
+        </g>
+      </g>
+    </svg>
+    <figcaption>
+      <p class="demo-status" id="demo-status" aria-live="polite">Nightcap turned the monitor off, and it stays off.</p>
+      <button class="demo-button" id="demo-button" type="button" hidden>Lock the screen</button>
+    </figcaption>
+  </figure>
+</section>
+
+<section class="section">
+  <h2>What happens when you lock</h2>
+  <p>Browsers ask Windows to keep the display on while video plays, and Windows goes along with it on the lock screen too. There is no setting to change that, so Nightcap steps in.</p>
+  <ol class="steps">
+    <li>
+      <h3>You press Win+L</h3>
+      <p>Lock the way you always do. Nightcap notices the moment the session locks.</p>
+    </li>
+    <li>
+      <h3>It waits a moment</h3>
+      <p>Two seconds by default. You can pick anything up to five minutes.</p>
+    </li>
+    <li>
+      <h3>The monitors turn off</h3>
+      <p>All of them, even with a video still playing in the browser.</p>
+    </li>
+    <li>
+      <h3>They stay off</h3>
+      <p>Every 30 seconds with no keyboard or mouse activity, Nightcap turns them off again. Wake the screen to sign in and it leaves you alone.</p>
+    </li>
+  </ol>
+</section>
+
+<section class="section">
+  <h2>Everything it does fits in one menu</h2>
+  <p>Nightcap lives in the system tray. Click its icon for the whole interface.</p>
+  <div class="menu-row">
+    <div class="tray-menu" aria-hidden="true">
+      <div><span>✓</span><span>Enabled</span></div>
+      <div><span></span><span>Delay after lock</span><span>›</span></div>
+      <div><span>✓</span><span>Start at login</span></div>
+      <hr>
+      <div><span></span><span>Exit</span></div>
+    </div>
+    <dl class="options">
+      <div>
+        <dt>Enabled</dt>
+        <dd>Switch Nightcap off for a while without closing it.</dd>
+      </div>
+      <div>
+        <dt>Delay after lock</dt>
+        <dd>How long after locking the monitors go off: 2, 5, 15 or 30 seconds, 1 minute or 5 minutes.</dd>
+      </div>
+      <div>
+        <dt>Start at login</dt>
+        <dd>Run automatically when you sign in to Windows. The installer turns this on for you.</dd>
+      </div>
+      <div>
+        <dt>Exit</dt>
+        <dd>Close Nightcap. Your monitors go back to behaving the way Windows wants.</dd>
+      </div>
+    </dl>
+  </div>
+</section>
+
+<section class="section">
+  <h2>Good to know</h2>
+  <ul class="notes">
+    <li>
+      <h3>Windows will warn you about the download</h3>
+      <p>The installer isn't code-signed, so SmartScreen shows a warning the first time you run it. The source is a single C file if you would rather read it or build it yourself.</p>
+    </li>
+    <li>
+      <h3>No admin rights needed</h3>
+      <p>It installs for your account only and can be removed from the installed apps list in Windows Settings.</p>
+    </li>
+    <li>
+      <h3>It does nothing until you lock</h3>
+      <p>While you're using your PC, Nightcap sits idle. Your normal screen timeout and video watching are untouched.</p>
+    </li>
+    <li>
+      <h3>Prefer no installer?</h3>
+      <p>The <a href="https://github.com/sethryder/nightcap/releases/latest">latest release</a> also has <code>nightcap.exe</code> on its own. Put it anywhere and run it.</p>
+    </li>
+  </ul>
+</section>
+</main>
+
+<footer>
+  <p>Made by Seth Ryder. MIT licensed. <a href="https://github.com/sethryder/nightcap">Source and issues on GitHub</a>.</p>
+</footer>
+
+</div>
+<script>
+// Without JavaScript the page shows the sleeping monitor and no button.
+const root = document.documentElement;
+const button = document.getElementById('demo-button');
+const status = document.getElementById('demo-status');
+const text = {
+  awake: 'A stream is playing, which is what keeps a monitor awake.',
+  locked: 'Locked. The stream is still playing, so Windows would leave the screen on.',
+  asleep: 'Nightcap turned the monitor off, and it stays off.',
+};
+let timer;
+function set(state) {
+  root.dataset.state = state;
+  status.textContent = text[state];
+  button.textContent = state === 'awake' ? 'Lock the screen' : 'Unlock';
+}
+button.addEventListener('click', () => {
+  clearTimeout(timer);
+  if (root.dataset.state === 'awake') {
+    set('locked');
+    timer = setTimeout(() => set('asleep'), 2000);  // the app's default delay
+  } else {
+    set('awake');
+  }
+});
+button.hidden = false;
+set('awake');
+</script>
+</body>
+</html>
